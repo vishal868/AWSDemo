@@ -49,7 +49,6 @@
                                         "iam:GetRole",
                                         "iam:CreateRole",
                                         "iam:DeleteRole",
-                                        "iam:PutRolePolicy",
                                         "iam:PassRole",
                                         "s3:CreateBucket",
                                         "s3:DeleteObject",
