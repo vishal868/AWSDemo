@@ -75,7 +75,13 @@
                                     "Resource": "*"
                                     
                                 },
-                                
+                                 {
+                                    "Effect": "Deny",
+                                    "Action": [
+                                        "lambda:*"
+                                    ],
+                                    "Resource":"arn:aws:lambda::*:function/gov-*"
+                                },
                                 {
                                     "Effect": "Deny",
                                     "Action": [
