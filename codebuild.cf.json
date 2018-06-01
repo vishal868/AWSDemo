@@ -2,18 +2,19 @@
     "AWSTemplateFormatVersion": "2010-09-09",
     "Description":"A template for running a build",
     "Parameters": {
-      "gitHubCloneURL": {
-          "Description": "The clone URL of the GitHub repo",
-          "Type": "String"
-      },
-      "codeBuildImage": {
-          "Description": "The image to use when running code bulid, e.g. aws/codebuild/java:openjdk-8",
-          "Type": "String",
-          "Default":"aws/codebuild/java:openjdk-8"
+        "gitHubCloneURL": {
+            "Description": "The clone URL of the GitHub repo",
+            "Type": "String"
+        },
+        "codeBuildImage": {
+            "Description": "The image to use when running code bulid, e.g. aws/codebuild/java:openjdk-8",
+            "Type": "String",
+            "Default":"aws/codebuild/java:openjdk-8"
         }
+
     },
     "Resources": {
-     "CodeBuildServiceRole": {
+        "CodeBuildServiceRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
                 "AssumeRolePolicyDocument": {
@@ -44,7 +45,7 @@
                                     "Resource": "*"
                                 },
                                 {
-                                    "Effect": "Allow",
+                                    "Effect":"Allow",
                                     "Action": [
                                         "iam:GetRole",
                                         "iam:CreateRole",
@@ -73,14 +74,27 @@
                                         "apigateway:GET"
                                     ],
                                     "Resource": "*"
-                                    
                                 },
-                                 {
+                                {
                                     "Effect": "Deny",
                                     "Action": [
                                         "lambda:*"
                                     ],
                                     "Resource":"arn:aws:lambda::*:function/gov-*"
+                                },
+                                {
+                                    "Effect": "Deny",
+                                    "Action": [
+                                        "s3:*"
+                                    ],
+                                    "Resource":"arn:aws:s3:::gov-*"
+                                },
+                                {
+                                    "Effect": "Deny",
+                                    "Action": [
+                                        "logs:*"
+                                    ],
+                                    "Resource":"arn:aws:logs::*:*/gov-*"
                                 },
                                 {
                                     "Effect": "Deny",
@@ -93,6 +107,32 @@
                         }
                     }
                 ]
+            }
+        },
+        "CodeBuildProject": {
+            "Type": "AWS::CodeBuild::Project",
+            "Properties": {
+                "Description": "Runs buildspec.yaml",
+                "ServiceRole": { "Ref": "CodeBuildServiceRole" },
+                "Artifacts": { "Type": "NO_ARTIFACTS" },
+
+                "Environment": {
+                    "Type": "LINUX_CONTAINER",
+                    "ComputeType": "BUILD_GENERAL1_SMALL",
+                    "Image": { "Ref": "codeBuildImage" }
+                },
+                "Source": {
+                    "Type": "GITHUB",
+                    "Auth": {
+                        "Type":"OAUTH"
+                    },
+                    "Location": { "Ref": "gitHubCloneURL" },
+                    "BuildSpec": "buildspec.yaml"
+                },
+                "Triggers": {
+                    "Webhook":true
+                },
+                "TimeoutInMinutes": 5
             }
         }
     }
